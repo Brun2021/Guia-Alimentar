@@ -616,16 +616,29 @@ function lembUI(){
 async function pedePerm(){
   if(!temNot())return false;
   if(Notification.permission==="granted")return true;
-  return (await Notification.requestPermission())==="granted";
+  if(Notification.permission==="denied")return false;
+  try{
+    const r=Notification.requestPermission((x)=>x);
+    const res=(r&&typeof r.then==="function")?await r:await new Promise(ok=>setTimeout(ok,300)).then(()=>Notification.permission);
+    return (res||Notification.permission)==="granted";
+  }catch(e){return Notification.permission==="granted"}
 }
-$("lembBtn").onclick=async()=>{
-  if(S.lembretes){S.lembretes=false;save();lembUI();return}
-  S.lembretes=await pedePerm();save();lembUI();verifica();
-};
-$("aguaBtn").onclick=async()=>{
-  if(S.lembAgua){S.lembAgua=false;save();lembUI();return}
-  S.lembAgua=await pedePerm();save();lembUI();verifica();
-};
+function aviso(m){const t=$("lembTxt");t.textContent=m;t.style.fontWeight="600"}
+async function ativa(chave,nome){
+  if(S[chave]){S[chave]=false;save();lembUI();return}
+  const ok=await pedePerm();
+  S[chave]=ok;save();lembUI();
+  if(!ok){
+    aviso(Notification.permission==="denied"
+      ?"Notificações bloqueadas. Toque no cadeado junto ao endereço do site (ou em Definições > Apps > Menu do Dia > Notificações) e permita."
+      :"Permissão não concedida. Toque de novo e escolha Permitir.");
+    return;
+  }
+  notifica("Lembretes ativados","Vai receber avisos: "+nome+".","teste-"+chave);
+  verifica();
+}
+$("lembBtn").onclick=()=>ativa("lembretes","refeições");
+$("aguaBtn").onclick=()=>ativa("lembAgua","água");
 $("aguaInt").onchange=()=>{
   S.aguaInt=+$("aguaInt").value;
   Object.keys(S.notif).forEach(k=>{if(k.indexOf("-a")>0)delete S.notif[k]});
@@ -633,7 +646,10 @@ $("aguaInt").onchange=()=>{
 };
 function notifica(t,corpo,tag,extra){
   const o=Object.assign({body:corpo,tag:tag,icon:"icon-192.png",badge:"icon-192.png"},extra||{});
-  try{if(swReg&&swReg.showNotification)swReg.showNotification(t,o);else new Notification(t,o)}catch(e){}
+  const direto=()=>{try{new Notification(t,o)}catch(e){}};
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.ready.then(r=>r.showNotification(t,o)).catch(direto);
+  }else direto();
 }
 function verifica(){
   if(!permOk())return;
