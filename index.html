@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1410">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Menu do Dia">
+<title>Menu do Dia</title>
+<style>
+:root{
+  --bg:#1b1410; --card:#272019; --card2:#32281f; --ink:#f5ebd9; --muted:#bba68e; --line:#4a3a2d;
+  --acc:#f0b429; --accink:#1b1410;
+  --ok:#9bd06f; --okbg:rgba(155,208,111,.16);
+  --mod:#f0b429; --modbg:rgba(240,180,41,.16);
+  --bad:#ff7a5c; --badbg:rgba(255,122,92,.16);
+  --low:#c9a4ee; --lowbg:rgba(201,164,238,.16);
+  --serif:Georgia,"Palatino Linotype","Times New Roman",serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-top:env(safe-area-inset-top,0px)}
+header{padding:18px 18px 14px;border-bottom:2px dotted var(--line)}
+.brand{display:flex;align-items:center;gap:12px;max-width:560px;margin:0 auto}
+.brand svg{width:44px;height:44px;flex:none;stroke:var(--acc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+h1{margin:0;font:700 28px/1.1 var(--serif);letter-spacing:.2px}
+header p{margin:3px 0 0;color:var(--muted);font-size:14px;text-transform:capitalize}
+main{padding:14px 14px calc(92px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto}
+.tab{display:none}.tab.on{display:block}
+h2{font:700 20px/1.2 var(--serif);margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.muted{color:var(--muted);font-size:13.5px}
+.big{font:700 46px/1 var(--serif)}
+.status{display:inline-block;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:700}
+.s-ok{background:var(--okbg);color:var(--ok)}.s-mod{background:var(--modbg);color:var(--mod)}
+.s-bad{background:var(--badbg);color:var(--bad)}.s-low{background:var(--lowbg);color:var(--low)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select,button{font:inherit;color:inherit}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+button{border:0;border-radius:10px;padding:11px 14px;background:var(--acc);color:var(--accink);font-weight:700;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.sm{padding:6px 10px;font-size:13px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+
+/* refeições como entradas de menu */
+.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.lead{display:flex;align-items:baseline;gap:8px;font-size:14px}
+.rn{color:var(--acc);font-weight:700}
+.lead i{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-3px)}
+.hr{color:var(--muted);font-variant-numeric:tabular-nums}
+.dish{font:700 21px/1.2 var(--serif);margin:10px 0 4px}
+.its{margin:0 0 6px;color:var(--ink);font-size:14.5px}
+.dica{margin:0 0 12px;color:var(--muted);font-size:13.5px;font-style:italic}
+.acts{display:flex;gap:8px}.acts button:first-child{flex:1}
+.slot.feito{background:var(--card2)}
+.slot.feito .dish{opacity:.75}
+.slot.feito .acts button:first-child{background:var(--okbg);color:var(--ok)}
+.prog{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 14px}
+.prog i{display:block;height:100%;background:var(--ok);border-radius:99px}
+
+/* semana */
+.pills{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
+.pill{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:400}
+.pill b{font-size:13px}.pill span{font:700 17px var(--serif)}
+.pill.hj{border-color:var(--acc)}
+.pill.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.dia{font:700 24px/1.1 var(--serif);margin:0 0 12px}
+.shop{columns:2;column-gap:18px;margin:0;padding:0;list-style:none;font-size:14.5px}
+.shop li{break-inside:avoid;padding:5px 0;border-bottom:1px dotted var(--line);display:flex;justify-content:space-between;gap:8px}
+.shop li span{color:var(--muted)}
+
+/* chips e alimentos */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:14px;font-weight:600}
+.chip.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.food{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px dotted var(--line)}
+.food:first-child{border-top:0}.food b{display:block;font-family:var(--serif);font-size:16.5px}
+.combo{padding:12px 0;border-top:1px dotted var(--line)}.combo:first-child{border-top:0}
+.combo b{display:block;font:700 18px/1.25 var(--serif)}
+.plate{display:flex;height:22px;border-radius:99px;overflow:hidden;margin:8px 0}.plate i{display:block}
+.list .item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px dotted var(--line);align-items:center}
+.list .item:first-child{border-top:0}
+.water{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.water span{width:30px;height:38px;border:2px solid var(--line);border-radius:6px 6px 12px 12px}
+.water span.f{background:#6fc3ee;border-color:#6fc3ee}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px}
+.empty{color:var(--muted);text-align:center;padding:18px 0}
+details summary{cursor:pointer;font-weight:700;padding:6px 0}
+svg.chart{width:100%;height:auto;display:block}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:transparent;color:var(--muted);border-radius:0;padding:10px 2px;font-size:11.5px;font-weight:600}
+nav button.on{color:var(--acc)}
+nav svg{display:block;margin:0 auto 2px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.banner{border-radius:10px;padding:10px 12px;font-size:14.5px;margin:12px 0 0;font-weight:600}
+.banner.bad{background:var(--badbg);color:var(--bad)}.banner.low{background:var(--lowbg);color:var(--low)}
+.acoes{margin:8px 0 0;padding-left:20px}.acoes li{margin:0 0 6px;font-size:15px}
+.gt{font:700 17px/1.2 var(--serif);margin:16px 0 8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags .status{font-weight:600}
+.aviso{margin:-4px 0 12px;color:var(--bad);font-size:13.5px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="15"/><circle cx="24" cy="26" r="9"/><path d="M5 8v10a3 3 0 0 0 3 3v7M8 8v7M11 8v10a3 3 0 0 1-3 3M43 8c-3 3-4 7-4 11h4v9"/></svg>
+    <div><h1>Menu do dia</h1><p id="hoje"></p></div>
+  </div>
+</header>
+
+<main>
+<!-- HOJE -->
+<section class="tab on" id="t-hoje">
+  <div class="card">
+    <h2>Registar glicemia</h2>
+    <div class="row">
+      <div><label for="gv">Valor</label><input id="gv" type="number" inputmode="decimal" step="any" placeholder="ex.: 110"></div>
+      <div><label for="gu">Unidade</label><select id="gu"><option value="mgdl">mg/dL</option><option value="mmol">mmol/L</option></select></div>
+    </div>
+    <label for="gm">Momento</label>
+    <select id="gm">
+      <option value="jejum">Em jejum</option><option value="antes">Antes da refeição</option>
+      <option value="apos">2 h após refeição</option><option value="deitar">Ao deitar</option>
+    </select>
+    <div style="margin-top:12px"><button id="gs" style="width:100%">Guardar e ver o meu plano</button></div>
+  </div>
+
+  <div id="guia"></div>
+
+  <div class="row" style="margin-bottom:0"><h2 style="margin:0">Hoje à mesa</h2><span class="muted" id="progHoje" style="text-align:right"></span></div>
+  <div class="prog"><i id="barHoje" style="width:0"></i></div>
+  <div id="slotsHoje"></div>
+
+  <div class="card">
+    <h2>Água</h2>
+    <div class="water" id="agua"></div>
+    <div class="row"><button class="ghost sm" id="aguaMenos">− Copo</button><button class="sm" id="aguaMais">+ Copo</button></div>
+    <p class="muted" id="metaAgua" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h2>Lembretes</h2>
+    <p class="muted" id="lembTxt" style="margin:0 0 10px"></p>
+    <div class="row"><button id="lembBtn">Refeições: ativar</button><button id="aguaBtn">Água: ativar</button></div>
+    <label for="aguaInt">Beber água a cada</label>
+    <select id="aguaInt">
+      <option value="60">1 hora</option><option value="90">1 h 30 min</option>
+      <option value="120">2 horas</option><option value="180">3 horas</option>
+    </select>
+    <button class="ghost" id="instBtn" hidden style="margin-top:10px;width:100%">Instalar app</button>
+  </div>
+</section>
+
+<!-- SEMANA -->
+<section class="tab" id="t-sem">
+  <div class="card">
+    <h2>Semana</h2>
+    <div class="muted" id="resSem"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost sm" data-act="nova">Nova semana</button>
+      <button class="ghost sm" data-act="padrao">Plano padrão</button>
+      <button class="sm" data-act="compras">Lista de compras</button>
+    </div>
+  </div>
+  <div id="compras"></div>
+  <div class="pills" id="pills"></div>
+  <div id="slotsSem"></div>
+</section>
+
+<!-- MENU -->
+<section class="tab" id="t-menu">
+  <div class="card">
+    <h2>Combinações prontas</h2>
+    <div class="chips" id="menuChips"></div>
+    <div id="menuLista"></div>
+  </div>
+  <div class="card">
+    <h2>Prato equilibrado</h2>
+    <div class="plate" aria-hidden="true"><i style="width:50%;background:var(--ok)"></i><i style="width:25%;background:#6fc3ee"></i><i style="width:25%;background:var(--mod)"></i></div>
+    <div class="muted">Metade vegetais e folhas, um quarto de proteína, um quarto de hidratos. Coma devagar e deixe os hidratos para o fim.</div>
+  </div>
+  <div class="card">
+    <details>
+      <summary>Avaliar o meu prato</summary>
+      <div class="chips" id="rchips"></div>
+      <div id="rsel" class="muted">Nenhum alimento selecionado.</div>
+      <div id="rres" style="margin-top:10px"></div>
+      <div style="margin-top:10px"><button class="ghost sm" id="rlimpa">Limpar</button></div>
+    </details>
+  </div>
+</section>
+
+<!-- ALIMENTOS -->
+<section class="tab" id="t-ali">
+  <div class="card">
+    <p class="muted" id="aliNota" style="margin:0 0 10px"></p>
+    <input id="busca" type="search" placeholder="Procurar alimento…" aria-label="Procurar alimento">
+    <div class="chips" id="filtros">
+      <button class="chip on" data-f="todos">Todos</button>
+      <button class="chip" data-f="ok">Preferir</button>
+      <button class="chip" data-f="mod">Com moderação</button>
+      <button class="chip" data-f="bad">Evitar</button>
+    </div>
+    <div id="lista"></div>
+  </div>
+</section>
+
+<!-- HISTÓRICO -->
+<section class="tab" id="t-his">
+  <div class="card">
+    <h2>Últimos 14 dias</h2>
+    <div id="grafico"></div>
+    <div id="resumo" class="muted"></div>
+  </div>
+  <div class="card"><h2>Medições</h2><div id="hist" class="list"></div></div>
+  <div class="card">
+    <h2>Dados</h2>
+    <div class="row"><button class="ghost" id="exp">Exportar cópia</button><button class="ghost" id="apaga">Apagar tudo</button></div>
+  </div>
+  <p class="note">Esta app é um diário de apoio e não substitui consulta médica ou nutricionista. Valores acima de 250 mg/dL com sede intensa, vómitos ou confusão, ou abaixo de 70 mg/dL com sintomas, exigem atendimento médico.</p>
+</section>
+</main>
+
+<nav>
+  <button class="on" data-t="hoje"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>Hoje</button>
+  <button data-t="sem"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>Semana</button>
+  <button data-t="menu"><svg viewBox="0 0 24 24"><path d="M4 3v8a3 3 0 0 0 3 3v7M7 3v6M10 3v8a3 3 0 0 1-3 3M17 3c-2 2-3 5-3 8h3v10"/></svg>Menu</button>
+  <button data-t="ali"><svg viewBox="0 0 24 24"><path d="M5 12c0-5 4-8 14-8 0 10-3 14-8 14a6 6 0 0 1-6-6zM5 21c2-5 5-8 9-10"/></svg>Alimentos</button>
+  <button data-t="his"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 4 3 5-8"/></svg>Histórico</button>
+</nav>
+
+<script>
+/* ================= DADOS ================= */
+const REF=["Pequeno-almoço","Lanche da manhã","Almoço","Lanche da tarde","Jantar","Ceia"];
+const HORA=["07:30","10:00","12:30","16:00","19:30","21:30"];
+const DIAS=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+const DIAS_L=["Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado","Domingo"];
+
+// r = índice da refeição; it = ingredientes (usados na lista de compras)
+const COMBOS=[
+ // Pequeno-almoço
+ {id:"p1",r:0,h:1,n:"Ovos mexidos com tomate e cebola",it:["Ovos","Tomate","Cebola","Pão integral","Chá sem açúcar"],d:"Uma fatia de pão integral chega. Sem manteiga em excesso."},
+ {id:"p2",r:0,h:2,n:"Papa de aveia com canela e banana",it:["Aveia","Canela","Banana madura","Leite sem açúcar"],d:"Meia banana apenas. A aveia liberta o açúcar devagar."},
+ {id:"p3",r:0,h:0,n:"Omelete de quizaca com abacate",it:["Ovos","Folhas de abóbora","Abacate","Café sem açúcar"],d:"Proteína e fibra logo de manhã seguram a glicemia."},
+ {id:"p4",r:0,h:0,n:"Iogurte natural com goiaba e ginguba",it:["Iogurte natural","Goiaba","Ginguba sem sal"],d:"Iogurte sem açúcar. A goiaba dá doçura e fibra."},
+ // Lanche da manhã
+ {id:"m1",r:1,h:1,n:"Maçã com um punhado de ginguba",it:["Maçã","Ginguba sem sal"],d:"Fruta inteira, com casca, e a gordura boa da ginguba."},
+ {id:"m2",r:1,h:0,n:"Ovo cozido com pepino",it:["Ovos","Pepino"],d:"Sacia sem subir o açúcar."},
+ {id:"m3",r:1,h:0,n:"Iogurte natural com canela",it:["Iogurte natural","Canela"],d:"Sem açúcar nem mel."},
+ {id:"m4",r:1,h:1,n:"Laranja inteira e chá verde",it:["Laranja","Chá verde"],d:"Coma o gomo com o bagaço. Não faça sumo."},
+ // Almoço
+ {id:"a1",r:2,h:1,n:"Peixe grelhado, salada mista e arroz integral",it:["Peixe","Alface","Tomate","Pepino","Arroz integral"],d:"Arroz: 3 a 4 colheres de sopa. Salada primeiro."},
+ {id:"a2",r:2,h:1,n:"Frango grelhado, feijão e couve salteada",it:["Frango","Feijão","Couve","Alho","Cebola"],d:"Retire a pele. O feijão é hidrato lento."},
+ {id:"a3",r:2,h:2,n:"Calulu de peixe leve com funge pequeno",it:["Peixe seco","Folhas de abóbora","Quiabo","Fubá de milho","Óleo (pouco)"],d:"Muita folha, pouco óleo, funge do tamanho de um punho fechado pequeno."},
+ {id:"a4",r:2,h:0,n:"Muamba de galinha leve com quiabo e salada",it:["Galinha","Quiabo","Tomate","Cebola","Salada verde"],d:"Pouco óleo de palma. Troque o funge por salada."},
+ {id:"a5",r:2,h:2,n:"Feijão com batata-doce, folhas e ovo cozido",it:["Feijão","Batata-doce","Folhas de abóbora","Ovos"],d:"Batata-doce em porção pequena, sempre com proteína."},
+ // Lanche da tarde
+ {id:"t1",r:3,h:1,n:"Fatia de papaia e chá sem açúcar",it:["Papaia","Chá sem açúcar"],d:"Uma fatia só. Não repita."},
+ {id:"t2",r:3,h:1,n:"Pão integral com ovo e tomate",it:["Pão integral","Ovos","Tomate"],d:"Uma fatia, sem manteiga."},
+ {id:"t3",r:3,h:0,n:"Meio abacate com limão",it:["Abacate","Limão"],d:"Gordura boa. Sem sal em excesso."},
+ {id:"t4",r:3,h:0,n:"Tomate e pepino com atum",it:["Tomate","Pepino","Atum em água"],d:"Atum em água, não em óleo."},
+ // Jantar
+ {id:"j1",r:4,h:0,n:"Sopa de legumes com frango desfiado",it:["Frango","Cenoura","Couve","Abóbora","Cebola"],d:"Sem batata nem massa. Mantém a noite leve."},
+ {id:"j2",r:4,h:0,n:"Salada mista com ovo e peixe",it:["Alface","Tomate","Pepino","Ovos","Peixe"],d:"Tempere com limão e azeite, pouco."},
+ {id:"j3",r:4,h:0,n:"Peixe cozido com legumes e gimboa",it:["Peixe","Gimboa","Cenoura","Quiabo","Cebola"],d:"Cozido ou grelhado, nunca frito."},
+ {id:"j4",r:4,h:0,n:"Omelete com salada de tomate e alface",it:["Ovos","Tomate","Alface","Cebola"],d:"Rápida e sem hidratos pesados."},
+ // Ceia
+ {id:"c1",r:5,h:0,n:"Iogurte natural sem açúcar",it:["Iogurte natural"],d:"Pequena porção. Evita fome à noite."},
+ {id:"c2",r:5,h:0,n:"Chá de canela e fatia de queijo",it:["Canela","Queijo fresco"],d:"Canela sem açúcar."},
+ {id:"c3",r:5,h:0,n:"Punhado de ginguba sem sal e água",it:["Ginguba sem sal"],d:"Cerca de 15 grãos."}
+];
+
+// ok = preferir, mod = com moderação, bad = evitar
+const ALIMENTOS=[
+ ["Folhas de abóbora (quizaca)","ok","Vegetais","Muita fibra, quase sem açúcar."],
+ ["Couve / quiabo","ok","Vegetais","Fibra que ajuda a travar picos de açúcar."],
+ ["Tomate, cebola, pepino, alface","ok","Vegetais","Encha metade do prato com estes."],
+ ["Gimboa / espinafre","ok","Vegetais","Rico em fibra e minerais."],
+ ["Peixe grelhado ou cozido","ok","Proteína","Sem frito. Boa base de refeição."],
+ ["Ovo cozido","ok","Proteína","Sacia e quase não sobe a glicemia."],
+ ["Frango sem pele (grelhado)","ok","Proteína","Evite panados e fritos."],
+ ["Carne magra grelhada","ok","Proteína","Porção do tamanho da palma da mão."],
+ ["Mufete simples","mod","Proteína","Cuidado com o óleo e a porção de mandioca e banana."],
+ ["Salsicha, fiambre, enchidos","bad","Proteína","Muito sal e gordura."],
+ ["Feijão (preto, manteiga, catarino)","ok","Leguminosas","Hidrato lento. Prefira com pouco óleo."],
+ ["Grão, lentilhas","ok","Leguminosas","Boa fibra e proteína."],
+ ["Ginguba (amendoim) sem sal","ok","Leguminosas","Um punhado pequeno por dia."],
+ ["Batata-doce cozida","mod","Hidratos","Melhor que a batata branca. Porção pequena."],
+ ["Arroz integral","mod","Hidratos","3 a 4 colheres de sopa por refeição."],
+ ["Arroz branco","mod","Hidratos","Sobe rápido. Porção pequena e com vegetais."],
+ ["Massa (al dente)","mod","Hidratos","Porção pequena, com proteína e salada."],
+ ["Funge de milho","mod","Hidratos","Sobe rápido. Porção pequena, com feijão e folhas."],
+ ["Funge de bombó (mandioca)","mod","Hidratos","Muito amido. Porção pequena e com vegetais."],
+ ["Mandioca cozida","mod","Hidratos","Amido alto. Metade da porção habitual."],
+ ["Banana-pão / banana frita","bad","Hidratos","Amido e fritura. Ocasional e pequena."],
+ ["Pão branco","bad","Hidratos","Troque por pão integral, em menor quantidade."],
+ ["Pão integral","mod","Hidratos","1 fatia com proteína."],
+ ["Batata frita, chips","bad","Hidratos","Fritura e amido. Evitar."],
+ ["Maçã, pera, laranja (com bagaço)","ok","Fruta","Fruta inteira, sem sumo."],
+ ["Papaia (mamão)","mod","Fruta","Uma fatia."],
+ ["Goiaba, maracujá","ok","Fruta","Fibra alta. Boa escolha."],
+ ["Abacate","ok","Fruta","Gordura boa. Porção pequena."],
+ ["Banana madura","mod","Fruta","Meia banana de cada vez."],
+ ["Manga, ananás","mod","Fruta","Uma fatia pequena."],
+ ["Melancia","mod","Fruta","Fatia pequena, não sozinha em jejum."],
+ ["Água, chá sem açúcar","ok","Bebidas","Bebida principal."],
+ ["Café sem açúcar","ok","Bebidas","Sem açúcar nem leite condensado."],
+ ["Sumo natural (sem açúcar)","mod","Bebidas","Sobe rápido sem a fibra. Pouca quantidade."],
+ ["Refrigerantes, sumos de pacote","bad","Bebidas","Açúcar líquido. Evitar."],
+ ["Cerveja, vinho, licores","bad","Bebidas","Podem desregular a glicemia. Fale com o médico."],
+ ["Bolos, bolachas, doces","bad","Doces","Evitar ou muito ocasional."],
+ ["Açúcar, mel, leite condensado","bad","Doces","Evitar."],
+ ["Gelado, chocolate de leite","bad","Doces","Evitar."],
+ ["Muamba de galinha (pouco óleo)","mod","Pratos","Porção pequena de funge ou arroz."],
+ ["Calulu de peixe","mod","Pratos","Bom com folhas. Cuidado com o óleo."],
+ ["Cabidela, feijoada gorda","bad","Pratos","Gordura alta. Ocasional."],
+ ["Hambúrguer com batata frita","bad","Pratos","Troque por grelhado com salada."],
+ ["Salada mista com ovo ou peixe","ok","Pratos","Boa refeição leve."]
+];
+const MOM={jejum:"Em jejum",antes:"Antes da refeição",apos:"2 h após refeição",deitar:"Ao deitar"};
+
+/* ================= ESTADO ================= */
+const KEY="dieta-glicemia-v1";
+let stored=null;try{stored=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+let S=Object.assign({leituras:[],agua:{},plano:{},comi:{},lembretes:false,lembAgua:false,aguaInt:120,notif:{}},stored||{});
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const agora=new Date(), hojeIdx=(agora.getDay()+6)%7, hoje=ymd(agora);
+const dataDe=i=>{const d=new Date(agora);d.setDate(agora.getDate()-hojeIdx+i);return d};
+let selDia=hojeIdx, trocando=null, compras=false, menuR=0;
+$("hoje").textContent=agora.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
+
+/* ================= PLANO ================= */
+function comboDe(i,r){
+  const id=S.plano[i+"-"+r];
+  let c=id&&COMBOS.find(x=>x.id===id);
+  if(!c){
+    const l=COMBOS.filter(x=>x.r===r);
+    c=l[(i+r)%l.length];
+    if(i===hojeIdx){const m=maxH();if(c.h>m){const ok=l.filter(x=>x.h<=m);c=ok[(i+r)%ok.length]}}
+  }
+  return c;
+}
+function slotsHTML(i){
+  const date=ymd(dataDe(i));
+  return REF.map((nome,r)=>{
+    const c=comboDe(i,r), k=date+"-"+r, feito=!!S.comi[k], tk=i+"-"+r, tr=trocando===tk;
+    const titulo=tr
+      ?`<select data-sel="${tk}" aria-label="Escolher combinação para ${nome}">${COMBOS.filter(x=>x.r===r).map(x=>`<option value="${x.id}" ${x.id===c.id?"selected":""}>${x.n}</option>`).join("")}</select>`
+      :`<h3 class="dish">${c.n}</h3>`;
+    return `<article class="slot ${feito?"feito":""}">
+      <div class="lead"><span class="rn">${nome}</span><i></i><span class="hr">${HORA[r]}</span></div>
+      ${titulo}
+      <p class="its">${c.it.join(", ")}</p>
+      <p class="dica">${c.d}</p>
+      ${i===hojeIdx&&c.h>maxH()?'<p class="aviso">Rica em hidratos para a glicemia de hoje. Troque por outra.</p>':""}
+      <div class="acts">
+        <button data-act="comi" data-k="${k}">${feito?"✓ Comi":"Marcar como comido"}</button>
+        <button class="ghost" data-act="troca" data-k="${tk}">${tr?"Fechar":"Trocar"}</button>
+      </div></article>`;
+  }).join("");
+}
+function renderPlano(){
+  $("slotsHoje").innerHTML=slotsHTML(hojeIdx);
+  const n=REF.filter((_,r)=>S.comi[hoje+"-"+r]).length;
+  $("progHoje").textContent=`${n} de ${REF.length} refeições`;
+  $("barHoje").style.width=(n/REF.length*100)+"%";
+
+  $("pills").innerHTML=DIAS.map((d,i)=>`<button class="pill ${i===selDia?"on":""} ${i===hojeIdx?"hj":""}" data-act="dia" data-day="${i}" aria-label="${DIAS_L[i]}"><b>${d}</b><span>${dataDe(i).getDate()}</span></button>`).join("");
+  $("slotsSem").innerHTML=`<h2 class="dia">${DIAS_L[selDia]}</h2>`+slotsHTML(selDia);
+
+  let feitas=0;
+  for(let i=0;i<7;i++)for(let r=0;r<6;r++)if(S.comi[ymd(dataDe(i))+"-"+r])feitas++;
+  $("resSem").textContent=`${feitas} de 42 refeições cumpridas esta semana.`;
+
+  if(compras){
+    const m={};
+    for(let i=0;i<7;i++)for(let r=0;r<6;r++)comboDe(i,r).it.forEach(x=>m[x]=(m[x]||0)+1);
+    const l=Object.keys(m).sort((a,b)=>a.localeCompare(b,"pt"));
+    $("compras").innerHTML=`<div class="card"><h2>Lista de compras</h2><ul class="shop">${l.map(x=>`<li>${x}<span>${m[x]}×</span></li>`).join("")}</ul><p class="muted" style="margin:10px 0 0">O número indica em quantas refeições da semana o ingrediente aparece.</p></div>`;
+  }else $("compras").innerHTML="";
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act;
+  if(a==="comi"){S.comi[b.dataset.k]=!S.comi[b.dataset.k];save();renderPlano()}
+  else if(a==="troca"){trocando=trocando===b.dataset.k?null:b.dataset.k;renderPlano()}
+  else if(a==="dia"){selDia=+b.dataset.day;trocando=null;renderPlano()}
+  else if(a==="compras"){compras=!compras;renderPlano()}
+  else if(a==="padrao"){if(confirm("Voltar ao plano padrão da semana?")){S.plano={};trocando=null;save();renderPlano()}}
+  else if(a==="nova"){
+    if(!confirm("Criar uma semana nova com combinações diferentes?"))return;
+    for(let r=0;r<6;r++){
+      const l=COMBOS.filter(x=>x.r===r);let ant=null;
+      for(let i=0;i<7;i++){
+        let c;do{c=l[Math.floor(Math.random()*l.length)]}while(l.length>1&&c.id===ant);
+        S.plano[i+"-"+r]=c.id;ant=c.id;
+      }
+    }
+    trocando=null;save();renderPlano();
+  }
+});
+document.addEventListener("change",e=>{
+  const k=e.target.dataset&&e.target.dataset.sel;
+  if(k){S.plano[k]=e.target.value;trocando=null;save();renderPlano()}
+});
+
+/* ================= MENU (combinações) ================= */
+function menuChips(){
+  $("menuChips").innerHTML=REF.map((n,r)=>`<button class="chip ${r===menuR?"on":""}" data-r="${r}">${n}</button>`).join("");
+  document.querySelectorAll("#menuChips .chip").forEach(c=>c.onclick=()=>{menuR=+c.dataset.r;menuChips();menuLista()});
+}
+function menuLista(){
+  $("menuLista").innerHTML=COMBOS.filter(c=>c.r===menuR).map(c=>`<div class="combo"><b>${c.n}</b><div style="font-size:14.5px">${c.it.join(", ")}</div><div class="muted" style="font-style:italic">${c.d}</div></div>`).join("");
+}
+/* avaliar prato livre */
+let sel=[];
+function rchips(){
+  $("rchips").innerHTML=ALIMENTOS.map((a,i)=>`<button class="chip ${sel.includes(i)?"on":""}" data-i="${i}">${a[0].split(" (")[0]}</button>`).join("");
+  document.querySelectorAll("#rchips .chip").forEach(c=>c.onclick=()=>{const i=+c.dataset.i;sel=sel.includes(i)?sel.filter(x=>x!==i):[...sel,i];rchips();avalia()});
+}
+function avalia(){
+  $("rsel").textContent=sel.length?`${sel.length} selecionado(s)`:"Nenhum alimento selecionado.";
+  if(!sel.length){$("rres").innerHTML="";return}
+  const it=sel.map(i=>ALIMENTOS[i]);
+  const bad=it.filter(a=>a[1]==="bad");
+  const veg=it.some(a=>a[2]==="Vegetais"),prot=it.some(a=>a[2]==="Proteína"||a[2]==="Leguminosas");
+  const hid=it.filter(a=>a[2]==="Hidratos").length;
+  const d=[];
+  if(bad.length)d.push(`Evite ou troque: ${bad.map(a=>a[0].split(" (")[0]).join(", ")}.`);
+  if(!veg)d.push("Falta vegetais. Acrescente salada ou folhas.");
+  if(!prot)d.push("Falta proteína (peixe, ovo, feijão) para segurar a glicemia.");
+  if(hid>1)d.push("Dois hidratos juntos sobem muito o açúcar. Fique com um, em porção pequena.");
+  if(!d.length)d.push("Boa combinação. Mantenha a porção de hidratos pequena.");
+  const k=bad.length>=2?"bad":(bad.length||hid>1||!veg)?"mod":"ok";
+  $("rres").innerHTML=`<span class="status s-${k}">${k==="ok"?"Boa refeição":k==="mod"?"Pode melhorar":"Rever refeição"}</span><ul style="margin:8px 0 0;padding-left:18px">${d.map(x=>`<li>${x}</li>`).join("")}</ul>`;
+}
+$("rlimpa").onclick=()=>{sel=[];rchips();avalia()};
+
+/* ================= GLICEMIA ================= */
+function classe(v,m){
+  if(v<70)return["Baixa","low"];
+  if(m==="jejum"||m==="antes"){if(v<100)return["Normal","ok"];if(v<126)return["Elevada","mod"];return["Alta","bad"]}
+  if(m==="deitar"){if(v<140)return["Normal","ok"];if(v<180)return["Elevada","mod"];return["Alta","bad"]}
+  if(v<140)return["Normal","ok"];if(v<200)return["Elevada","mod"];return["Alta","bad"];
+}
+const toMg=(v,u)=>u==="mmol"?v*18:v;
+const nm=a=>a[0].split(" (")[0];
+const hojeD=()=>ymd(new Date());
+const ultimaLeitura=()=>S.leituras.slice().sort((a,b)=>b.t-a.t)[0];
+function nivelHoje(){
+  const l=ultimaLeitura();
+  if(!l||ymd(new Date(l.t))!==hojeD())return null;
+  return classe(l.mg,l.m)[1];
+}
+const maxH=()=>{const n=nivelHoje();return n==="bad"?0:n==="mod"?1:2};
+const metaAgua=()=>{const n=nivelHoje();return n==="bad"?10:n==="mod"?9:8};
+
+/* classificação de cada alimento conforme o nível de glicemia */
+function classeAli(a,nv){
+  const frutaDoce=a[2]==="Fruta"&&!/Goiaba|Abacate/.test(a[0]);
+  const leg=a[2]==="Leguminosas"&&!/Ginguba/.test(a[0]);
+  if(nv==="bad"){
+    if(a[1]==="bad"||a[1]==="mod"||(a[1]==="ok"&&frutaDoce))return["bad","Evitar hoje"];
+    if(a[1]==="ok"&&leg)return["mod","Porção pequena"];
+    return["ok","Preferir"];
+  }
+  return[a[1],{ok:"Preferir",mod:"Moderação",bad:"Evitar"}[a[1]]];
+}
+function guiaDe(k,mg){
+  const g={acoes:[],alerta:null,grupos:[]};
+  if(k==="low"){
+    g.acoes=["Tome já 15 g de açúcar de ação rápida: 1 colher de sopa de açúcar em água, ou meio copo de sumo ou refrigerante normal.",
+      "Espere 15 minutos e meça de novo.","Se continuar abaixo de 70 mg/dL, repita o passo 1.",
+      "Quando subir, coma um lanche com hidrato lento e proteína."];
+    g.alerta="Com confusão, desmaio ou dificuldade em engolir, peça ajuda a alguém e vá a um serviço de urgência.";
+    g.grupos=[["ok","Tome agora (uma destas)",["Açúcar: 1 colher de sopa em água","Meio copo de sumo ou refrigerante normal"]],
+      ["mod","Depois, quando subir",["Pão integral com ovo","Iogurte natural"]],
+      ["bad","Evite",["Álcool","Exercício intenso","Saltar a próxima refeição"]]];
+    return g;
+  }
+  const nv=k==="bad"?"bad":null,r={ok:[],mod:[],bad:[]};
+  ALIMENTOS.forEach(a=>r[classeAli(a,nv)[0]].push(nm(a)));
+  if(k==="bad"){
+    g.acoes=["Beba um copo de água agora e continue ao longo do dia.",
+      "Hoje, faça refeições só com vegetais, proteína e gordura boa. Sem funge, arroz, mandioca, batata, pão ou fruta doce.",
+      "Sem refrigerantes, sumos, álcool nem doces.","Se se sentir bem, caminhe 10 a 15 minutos depois de comer.",
+      "Meça de novo daqui a 2 horas e amanhã em jejum.",
+      "Marque consulta para análises (glicemia e HbA1c). Não altere a medicação por conta própria."];
+    g.grupos=[["ok","Pode comer",r.ok],["mod","Só em porção pequena",r.mod],["bad","Evite hoje",r.bad]];
+  }else if(k==="mod"){
+    g.acoes=["Beba água ao longo do dia.","Encha metade do prato com vegetais e junte proteína.",
+      "Hidratos só em porção pequena e nunca dois juntos.","Evite refrigerantes, sumos, doces e fritos.",
+      "Caminhe 10 minutos depois das refeições.","Meça de novo na próxima refeição ou amanhã em jejum."];
+    g.grupos=[["ok","Pode comer",r.ok],["mod","Com moderação",r.mod],["bad","Evite",r.bad]];
+  }else{
+    g.acoes=["Continue com o plano de refeições.","Mantenha a água ao longo do dia.",
+      "Evite os alimentos vermelhos mesmo com o valor normal.","Meça nos horários que o seu médico indicou."];
+    g.grupos=[["ok","Pode comer",r.ok],["mod","Com moderação",r.mod],["bad","Evite",r.bad]];
+  }
+  if(mg>=300)g.alerta="Valor muito alto. Procure um serviço de saúde hoje, sobretudo com sede intensa, vómitos, dor abdominal, hálito a fruta ou confusão.";
+  else if(mg>=250)g.alerta="Acima de 250 mg/dL. Com sede intensa, vómitos, dor abdominal, hálito a fruta ou confusão, vá já a um serviço de saúde. Sem sintomas, fale com o seu médico hoje.";
+  return g;
+}
+function guia(){
+  const el=$("guia"),l=ultimaLeitura();
+  if(!l){el.innerHTML=`<div class="card"><h2>Plano para o seu valor</h2><p class="muted" style="margin:0">Registe a glicemia acima. A app mostra logo o que pode comer, o que deve evitar e quanta água beber.</p></div>`;return}
+  const[txt,k]=classe(l.mg,l.m),g=guiaDe(k,l.mg),mg=Math.round(l.mg),mesmoDia=ymd(new Date(l.t))===hojeD();
+  const quando=new Date(l.t).toLocaleString("pt-PT",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  el.innerHTML=`<div class="card">
+    <div class="row" style="align-items:flex-end"><div><span class="big">${mg}</span> <span class="muted">mg/dL</span></div>
+    <div style="text-align:right"><span class="status s-${k}">${txt}</span><div class="muted">${MOM[l.m]}<br>${quando}</div></div></div>
+    ${mesmoDia?"":`<p class="note">Esta medição não é de hoje. Meça de novo para atualizar o plano.</p>`}
+    ${g.alerta?`<div class="banner ${k==="low"?"low":"bad"}">${g.alerta}</div>`:""}
+    <h2 style="margin-top:16px">O que fazer agora</h2>
+    <ul class="acoes">${g.acoes.map(x=>`<li>${x}</li>`).join("")}</ul>
+    ${g.grupos.map(([c,t,lst])=>lst.length?`<h3 class="gt">${t}</h3><div class="tags">${lst.map(x=>`<span class="status s-${c}">${x}</span>`).join("")}</div>`:"").join("")}
+    <p class="muted" style="margin:14px 0 0">Meta de água hoje: ${metaAgua()} copos.${maxH()<2?" O menu de hoje foi ajustado a este valor.":""}</p>
+    <p class="note">Orientação geral. Não substitui o seu médico nem a medicação que ele indicou.</p></div>`;
+}
+const ultima=()=>guia();
+$("gs").onclick=()=>{
+  const v=parseFloat($("gv").value);
+  if(!v||v<=0){$("gv").focus();return}
+  const mg=toMg(v,$("gu").value);
+  if(mg<20||mg>800){alert("Valor fora do intervalo esperado. Confirme a unidade.");return}
+  S.leituras.push({t:Date.now(),mg,m:$("gm").value});save();$("gv").value="";
+  guia();renderPlano();agua();lista();
+  $("guia").scrollIntoView({behavior:"smooth",block:"start"});
+};
+function agua(){
+  const n=S.agua[hojeD()]||0,meta=metaAgua();
+  $("agua").innerHTML=Array.from({length:Math.max(meta,n)},(_,i)=>`<span class="${i<n?"f":""}"></span>`).join("");
+  $("metaAgua").textContent=`${n} de ${meta} copos hoje (cerca de 250 ml cada).`+(meta>8?" A meta subiu por causa da glicemia de hoje. Se tem restrição de líquidos, siga o seu médico.":"");
+}
+function addCopo(){const d=hojeD();S.agua[d]=Math.min(14,(S.agua[d]||0)+1);save();agua()}
+$("aguaMais").onclick=addCopo;
+$("aguaMenos").onclick=()=>{const d=hojeD();S.agua[d]=Math.max(0,(S.agua[d]||0)-1);save();agua()};
+
+/* ================= ALIMENTOS ================= */
+let filtro="todos";
+function lista(){
+  const q=$("busca").value.trim().toLowerCase(),nv=nivelHoje();
+  $("aliNota").textContent=nv==="bad"?"Glicemia alta hoje: só os alimentos verdes são seguros. Os restantes ficam para depois."
+    :nv==="mod"?"Glicemia elevada hoje: prefira os verdes e coma os amarelos em porção pequena."
+    :nv==="low"?"Glicemia baixa hoje: veja o plano no separador Hoje.":"";
+  const r=ALIMENTOS.filter(a=>(filtro==="todos"||classeAli(a,nv)[0]===filtro)&&(!q||a[0].toLowerCase().includes(q)||a[2].toLowerCase().includes(q)));
+  $("lista").innerHTML=r.length?r.map(a=>{const[c,t]=classeAli(a,nv);return `<div class="food"><div><b>${a[0]}</b><span class="muted">${a[3]}</span></div><span class="status s-${c}">${t}</span></div>`}).join(""):`<div class="empty">Nada encontrado.</div>`;
+}
+$("busca").oninput=lista;
+document.querySelectorAll("#filtros .chip").forEach(c=>c.onclick=()=>{
+  document.querySelectorAll("#filtros .chip").forEach(x=>x.classList.toggle("on",x===c));filtro=c.dataset.f;lista()});
+
+/* ================= HISTÓRICO ================= */
+function historico(){
+  const L=S.leituras.slice().sort((a,b)=>a.t-b.t),desde=Date.now()-14*864e5,R=L.filter(l=>l.t>=desde);
+  const css=getComputedStyle(document.documentElement),v=n=>css.getPropertyValue(n);
+  if(!R.length){$("grafico").innerHTML=`<div class="empty">Sem medições nos últimos 14 dias.</div>`;$("resumo").textContent=""}
+  else{
+    const W=320,H=150,p=24,max=Math.max(200,...R.map(r=>r.mg))+10,min=50;
+    const x=t=>p+(t-desde)/(864e5*14)*(W-2*p),y=q=>H-p-(q-min)/(max-min)*(H-2*p);
+    let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de glicemia dos últimos 14 dias">`;
+    g+=`<rect x="${p}" y="${y(100)}" width="${W-2*p}" height="${y(70)-y(100)}" fill="${v("--okbg")}"/>`;
+    [70,100,126,180].forEach(q=>{g+=`<line x1="${p}" x2="${W-p}" y1="${y(q)}" y2="${y(q)}" stroke="${v("--line")}" stroke-dasharray="3 3"/><text x="2" y="${y(q)+3}" font-size="9" fill="${v("--muted")}">${q}</text>`});
+    g+=`<polyline fill="none" stroke="${v("--acc")}" stroke-width="2" points="${R.map(r=>x(r.t)+","+y(r.mg)).join(" ")}"/>`;
+    R.forEach(r=>{const k=classe(r.mg,r.m)[1];g+=`<circle cx="${x(r.t)}" cy="${y(r.mg)}" r="4" fill="${v("--"+k)}"/>`});
+    $("grafico").innerHTML=g+"</svg>";
+    const jej=R.filter(r=>r.m==="jejum"),med=a=>Math.round(a.reduce((s,r)=>s+r.mg,0)/a.length);
+    const normais=R.filter(r=>classe(r.mg,r.m)[1]==="ok").length;
+    $("resumo").innerHTML=`Média geral: <b>${med(R)} mg/dL</b>`+(jej.length?` · Em jejum: <b>${med(jej)} mg/dL</b>`:"")+`<br>${normais} de ${R.length} medições na faixa normal.`;
+  }
+  const H2=L.slice().reverse().slice(0,30);
+  $("hist").innerHTML=H2.length?H2.map(l=>{const[t,k]=classe(l.mg,l.m);
+    return `<div class="item"><div><b>${Math.round(l.mg)} mg/dL</b><div class="muted">${MOM[l.m]}, ${new Date(l.t).toLocaleString("pt-PT",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div></div>
+    <div><span class="status s-${k}">${t}</span> <button class="ghost sm" data-l="${l.t}" aria-label="Apagar medição">×</button></div></div>`}).join(""):`<div class="empty">Sem medições.</div>`;
+  document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{S.leituras=S.leituras.filter(x=>x.t!=b.dataset.l);save();historico();ultima()});
+}
+$("exp").onclick=()=>{
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="dieta-glicemia-"+hoje+".json";a.click();
+};
+$("apaga").onclick=()=>{if(confirm("Apagar todas as medições e o progresso das refeições?")){S={leituras:[],agua:{},plano:{},comi:{},lembretes:false,lembAgua:false,aguaInt:120,notif:{}};save();ultima();agua();renderPlano();historico();lembUI()}};
+
+/* ================= LEMBRETES E INSTALAÇÃO ================= */
+let swReg=null;
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(r=>{swReg=r}).catch(()=>{});
+  navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.tipo==="copo")addCopo()});
+}
+let adiar=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();adiar=e;$("instBtn").hidden=false});
+$("instBtn").onclick=async()=>{if(!adiar)return;adiar.prompt();await adiar.userChoice;adiar=null;$("instBtn").hidden=true};
+const temNot=()=>"Notification" in window;
+const permOk=()=>temNot()&&Notification.permission==="granted";
+const fmtInt=m=>m%60===0?(m/60)+" h":Math.floor(m/60)+" h "+(m%60)+" min";
+function lembUI(){
+  if(!temNot()){$("lembTxt").textContent="Este navegador não suporta notificações.";$("lembBtn").hidden=true;$("aguaBtn").hidden=true;return}
+  const pm=S.lembretes&&permOk(),pa=S.lembAgua&&permOk();
+  $("lembBtn").textContent=pm?"Refeições: desativar":"Refeições: ativar";
+  $("aguaBtn").textContent=pa?"Água: desativar":"Água: ativar";
+  $("aguaInt").value=String(S.aguaInt||120);
+  $("lembTxt").textContent=Notification.permission==="denied"
+    ?"Notificações bloqueadas. Ative-as nas definições do navegador ou da app."
+    :(pm||pa
+      ?"Avisos"+(pm?" das refeições às "+HORA.join(", "):"")+(pa?(pm?" e":"")+" de água a cada "+fmtInt(S.aguaInt||120)+", das 08:00 às 21:00":"")+". Funcionam com a app aberta ou em segundo plano. Se o telemóvel a fechar, abra-a de novo."
+      :"Receba um aviso à hora de cada refeição e para beber água.");
+}
+async function pedePerm(){
+  if(!temNot())return false;
+  if(Notification.permission==="granted")return true;
+  return (await Notification.requestPermission())==="granted";
+}
+$("lembBtn").onclick=async()=>{
+  if(S.lembretes){S.lembretes=false;save();lembUI();return}
+  S.lembretes=await pedePerm();save();lembUI();verifica();
+};
+$("aguaBtn").onclick=async()=>{
+  if(S.lembAgua){S.lembAgua=false;save();lembUI();return}
+  S.lembAgua=await pedePerm();save();lembUI();verifica();
+};
+$("aguaInt").onchange=()=>{
+  S.aguaInt=+$("aguaInt").value;
+  Object.keys(S.notif).forEach(k=>{if(k.indexOf("-a")>0)delete S.notif[k]});
+  save();lembUI();
+};
+function notifica(t,corpo,tag,extra){
+  const o=Object.assign({body:corpo,tag:tag,icon:"icons/icon-192.png",badge:"icons/icon-192.png"},extra||{});
+  try{if(swReg&&swReg.showNotification)swReg.showNotification(t,o);else new Notification(t,o)}catch(e){}
+}
+function verifica(){
+  if(!permOk())return;
+  const n=new Date(),min=n.getHours()*60+n.getMinutes(),d=ymd(n),idx=(n.getDay()+6)%7;
+  Object.keys(S.notif).forEach(x=>{if(x.slice(0,10)!==d)delete S.notif[x]});
+  if(S.lembretes){
+    REF.forEach((nome,r)=>{
+      const p=HORA[r].split(":"),alvo=+p[0]*60+ +p[1],k=d+"-"+r;
+      if(min>=alvo&&min<alvo+20&&!S.notif[k]&&!S.comi[k]){
+        S.notif[k]=true;save();
+        notifica(nome+" às "+HORA[r],comboDe(idx,r).n,k);
+      }
+    });
+  }
+  if(S.lembAgua){
+    const meta=metaAgua(),copos=S.agua[d]||0,int=S.aguaInt||120;
+    for(let m=8*60,k=0;m<=21*60;m+=int,k++){
+      const key=d+"-a"+k;
+      if(min>=m&&min<m+15&&!S.notif[key]){
+        S.notif[key]=true;save();
+        const esperado=Math.ceil(meta*Math.min(1,(m-7*60)/(14*60)));
+        if(copos<esperado)notifica("Hora de beber água","Já bebeu "+copos+" de "+meta+" copos hoje.",key,{actions:[{action:"copo",title:"Bebi 1 copo"}]});
+      }
+    }
+  }
+}
+setInterval(verifica,30000);
+document.addEventListener("visibilitychange",verifica);
+lembUI();verifica();
+
+/* ================= NAVEGAÇÃO ================= */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id==="t-"+b.dataset.t));
+  window.scrollTo(0,0);
+  if(b.dataset.t==="his")historico();
+});
+
+/* ================= INÍCIO ================= */
+renderPlano();guia();agua();menuChips();menuLista();rchips();lista();
+if(location.search.indexOf("copo=1")>=0){addCopo();try{history.replaceState(null,"",location.pathname)}catch(e){}}
+</script>
+</body>
+</html>

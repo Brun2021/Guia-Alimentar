@@ -1,0 +1,37 @@
+MENU DO DIA - Dieta e Glicemia (PWA pronta para o PWABuilder)
+
+CONTEUDO
+  index.html              a app completa
+  manifest.webmanifest    nome, cores, icones
+  sw.js                   funcionamento offline e notificacoes
+  icons/                  icones 192/512, maskable, apple-touch, favicon
+
+PASSO A PASSO PARA GERAR O APK
+1. Coloque TODOS estes ficheiros na raiz de um site com HTTPS.
+   Opcao simples: GitHub Pages.
+   - Crie um repositorio, envie estes ficheiros (o index.html tem de ficar na raiz).
+   - Settings > Pages > Deploy from a branch > main / (root).
+   - O endereco fica https://SEU-USUARIO.github.io/NOME-DO-REPO/
+   (InfinityFree tambem serve, se o dominio tiver HTTPS ativo.)
+2. Abra o endereco no Chrome do telemovel e confirme que aparece "Instalar app".
+3. Va a https://www.pwabuilder.com , cole o endereco e toque em Start.
+4. Em "Package for stores" escolha Android e depois Generate Package.
+   - Package ID: por exemplo com.pedromavakala.menudodia
+   - Mantenha "Notifications" ativo.
+5. Descarregue o .zip gerado. Dentro vem o .apk (para instalar direto) e
+   o .aab (para a Google Play). O PWABuilder tambem entrega o ficheiro de
+   assinatura (signing key): GUARDE-O, e preciso para futuras atualizacoes.
+6. Instale o .apk no telemovel (permita "instalar apps desconhecidas").
+
+NOTAS
+- Os dados ficam guardados so no telemovel (localStorage).
+- Glicemia: ao guardar um valor, a app mostra o plano para esse valor (o que fazer,
+  alimentos que pode, com moderacao e a evitar), ajusta o menu de hoje e a meta de agua.
+- Agua: lembretes de 1 h a 3 h, das 08:00 as 21:00, com botao "Bebi 1 copo" na notificacao.
+- Lembretes: funcionam com a app aberta ou em segundo plano. O Android pode
+  fechar apps em segundo plano; nesse caso o aviso so aparece quando a app
+  voltar a abrir. Para avisos garantidos com a app fechada seria preciso
+  uma versao nativa (Capacitor com notificacoes locais).
+- Se mudar ficheiros depois de publicar, aumente o numero em sw.js
+  (CACHE = "menu-do-dia-v3") para o telemovel receber a versao nova.
+- Esta app e um diario de apoio e nao substitui medico ou nutricionista.
